@@ -75,6 +75,7 @@ function buildManagerIDArray() {
     if (err) throw err;
     for (let i = 0; i < res.length; i++) {
       managerIDArray.push(res[i]);
+      //console.log(managerIDArray[i].manager_id);
     }
     //console.log(managerIDArray);
   });
@@ -211,15 +212,17 @@ function addEmployee() {
       }
     }
 
+    //console.log(roleLoop());
+
     function ManagerLoop() {
-      for (let i = 0; i < managerIDArray; i++) {
-        if (managerIDArray[i].manager_name === answer.manager) {
-          return managerIDArray[i].manager_id;
+      for (let j = 0; j < managerIDArray.length; j++) {
+        if (managerIDArray[j].manager_name === answer.manager) {
+          return managerIDArray[j].manager_id;
         }
       }
     }
 
-    console.log;
+    //console.log(ManagerLoop());
 
     let empRole = roleLoop();
     let empManager = ManagerLoop();
