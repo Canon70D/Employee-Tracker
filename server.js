@@ -94,6 +94,7 @@ const startQ = [
       "Add Employee",
       "Update Employee Role",
       "View All Roles",
+      "Add Roles",
       "View All Departments",
       "Add Department",
       "Quit",
@@ -165,12 +166,14 @@ function start() {
       addEmployeeRole();
     } else if (nextStep === "View All Roles") {
       viewRoles();
+    } else if (nextStep === "Add Roles") {
+      addRoles();
     } else if (nextStep === "View All Departments") {
       viewDepartment();
     } else if (nextStep === "Add Department") {
       addDepartment();
     } else if (nextStep === "Quit") {
-      end();
+      stopApp();
     }
   });
 }
@@ -244,6 +247,30 @@ function addEmployee() {
   });
 
   //start();
+}
+
+//function to update employee role
+
+//function to display all roles
+function viewRoles() {
+  const roleQuery = `SELECT * FROM role`;
+  queryResult(roleQuery);
+}
+
+//function to add roles
+
+//function to view all department
+function viewDepartment() {
+  const departmentQuery = `SELECT * FROM department`;
+  queryResult(departmentQuery);
+}
+
+//function to add department
+
+//function to quit
+function stopApp() {
+  console.log("end");
+  db.end();
 }
 
 //----------------------------------------------------------
