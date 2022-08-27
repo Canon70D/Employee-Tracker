@@ -16,8 +16,72 @@ const { end } = require("./config/connection");
 //   console.log(err || rendered);
 // });
 
-//
+//========Array List===================
+var roleArray = [];
+var roleIDArray = [];
+var managerArray = [];
+var managerIDArray = [];
+//=====================================
 
+//========Build Array==================
+function buildRoleArray() {
+  const query = `SELECT id, title FROM role;`;
+  db.query(query, function (err, res) {
+    if (err) throw err;
+    for (let i = 0; i < res.length; i++) {
+      roleArray.push(res[i].title);
+    }
+    //console.log(roleArray);
+  });
+}
+
+function buildRoleIDArray() {
+  const query = `SELECT id, title FROM role;`;
+  db.query(query, function (err, res) {
+    if (err) throw err;
+    for (let i = 0; i < res.length; i++) {
+      roleIDArray.push(res[i]);
+    }
+    //console.log(roleIDArray);
+  });
+}
+
+function buildManagerArray() {
+  const query = `
+  SELECT DISTINCT x.id, CONCAT(x.first_name, " ", x.last_name) 
+  AS manager_name
+  FROM employee e
+  INNER JOIN employee x
+  ON e.manager_id = x.id`;
+
+  db.query(query, function (err, res) {
+    if (err) throw err;
+    for (let i = 0; i < res.length; i++) {
+      managerArray.push(res[i].manager_name);
+    }
+    managerArray.push("Null");
+    //console.log(managerArray);
+  });
+}
+
+function buildManagerIDArray() {
+  const query = `
+  SELECT DISTINCT CONCAT(x.first_name, " ", x.last_name) AS manager_name, x.id AS manager_id
+  FROM employee e
+  LEFT JOIN employee x
+  ON e.manager_id = x.id`;
+
+  db.query(query, function (err, res) {
+    if (err) throw err;
+    for (let i = 0; i < res.length; i++) {
+      managerIDArray.push(res[i]);
+    }
+    //console.log(managerIDArray);
+  });
+}
+//=====================================
+
+//=====================Question List===========================
 //start questions
 const startQ = [
   {
@@ -35,6 +99,51 @@ const startQ = [
     ],
   },
 ];
+
+const empQ = [
+  {
+    name: "first_name",
+    type: "input",
+    message: "Please enter the First Name of the New Employee:",
+    validate: function (nameInput) {
+      letters = /^[A-Za-z]+$/.test(nameInput);
+      if (letters) {
+        return true;
+      } else {
+        console.log(`invalid name, please check and re-enter`);
+        return false;
+      }
+    },
+  },
+  {
+    name: "last_name",
+    type: "input",
+    message: "Please enter the Last Name of the New Employee:",
+    validate: function (nameInput) {
+      letters = /^[A-Za-z]+$/.test(nameInput);
+      if (letters) {
+        return true;
+      } else {
+        console.log(`invalid name, please check and re-enter`);
+        return false;
+      }
+    },
+  },
+  {
+    name: "role",
+    type: "list",
+    message: "Please select the job title for this new employee",
+    choices: roleArray,
+  },
+  {
+    name: "manager",
+    type: "list",
+    message: "Please select the manager for this new employee",
+    choices: managerArray,
+  },
+];
+
+//=============================================================
 
 //start app
 function start() {
@@ -89,7 +198,57 @@ function viewEmployee() {
 }
 
 //function to add employee
-function addEmployee() {}
+function addEmployee() {
+  inquirer.prompt(empQ).then(function (answer) {
+    let empFirstName = answer.first_name;
+    let empLastName = answer.last_name;
+
+    function roleLoop() {
+      for (let i = 0; i < roleIDArray.length; i++) {
+        if (roleIDArray[i].title === answer.role) {
+          return roleIDArray[i].id;
+        }
+      }
+    }
+
+    function ManagerLoop() {
+      for (let i = 0; i < managerIDArray; i++) {
+        if (managerIDArray[i].manager_name === answer.manager) {
+          return managerIDArray[i].manager_id;
+        }
+      }
+    }
+
+    console.log;
+
+    let empRole = roleLoop();
+    let empManager = ManagerLoop();
+
+    let addEmployee = new Employee(
+      empFirstName,
+      empLastName,
+      empRole,
+      empManager
+    );
+
+    console.log("new employee added successfully!");
+
+    db.query("insert into employee set ?", addEmployee, function (err, res) {
+      if (err) throw err;
+    });
+
+    start();
+  });
+
+  //start();
+}
 
 //----------------------------------------------------------
-start();
+db.connect(function (err) {
+  if (err) throw err;
+  start();
+  buildRoleArray();
+  buildRoleIDArray();
+  buildManagerArray();
+  buildManagerIDArray();
+});
