@@ -38,12 +38,12 @@ const startQ = [
 
 //start app
 function start() {
-  asciiArt.font("Employee", "doom", (err, rendered) => {
-    console.log(err || rendered);
-  });
-  asciiArt.font("Manager", "doom", (err, rendered) => {
-    console.log(err || rendered);
-  });
+  // asciiArt.font("Employee", "doom", (err, rendered) => {
+  //   console.log(err || rendered);
+  // });
+  // asciiArt.font("Manager", "doom", (err, rendered) => {
+  //   console.log(err || rendered);
+  // });
 
   inquirer.prompt(startQ).then(function (answer) {
     const nextStep = answer.startQuery;
@@ -64,3 +64,32 @@ function start() {
     }
   });
 }
+
+//function to display qurey request
+function queryResult(query) {
+  db.query(query, (err, res) => {
+    if (err) throw err;
+    console.log(`==============================`);
+    console.table(res);
+    console.log(`==============================`);
+
+    start();
+  });
+}
+
+//function to display all employee
+function viewEmployee() {
+  const empQuery = `SELECT employee.id, employee.first_name, employee.last_name, role.title, department.name "department", role.salary ,CONCAT( manager.first_name, " ", manager.last_name) AS "manager"
+  FROM employee
+  left join role ON role.id = employee.role_id
+  left join department ON department.id = role.department_id
+  left join employee as manager on manager.id = employee.manager_id`;
+
+  queryResult(empQuery);
+}
+
+//function to add employee
+function addEmployee() {}
+
+//----------------------------------------------------------
+start();
