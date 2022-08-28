@@ -21,6 +21,8 @@ var roleArray = [];
 var roleIDArray = [];
 var managerArray = [];
 var managerIDArray = [];
+var employeeArray = [];
+var employeeIDArray = [];
 //=====================================
 
 //========Build Array==================
@@ -80,6 +82,36 @@ function buildManagerIDArray() {
     //console.log(managerIDArray);
   });
 }
+
+function buildEmployeeArray() {
+  const query = `SELECT DISTINCT CONCAT(x.first_name, " ", x.last_name) AS employee_name, x.id AS employee_id
+   FROM employee e
+   LEFT JOIN employee x
+   ON e.id = x.id`;
+
+  db.query(query, function (err, res) {
+    if (err) throw err;
+    for (let i = 0; i < res.length; i++) {
+      employeeArray.push(res[i].employee_name);
+    }
+    //console.log(employeeArray);
+  });
+}
+
+function buildEmployeeIDArray() {
+  const query = `SELECT DISTINCT CONCAT(x.first_name, " ", x.last_name) AS employee_name, x.id AS employee_id
+   FROM employee e
+   LEFT JOIN employee x
+   ON e.id = x.id`;
+
+  db.query(query, function (err, res) {
+    if (err) throw err;
+    for (let i = 0; i < res.length; i++) {
+      employeeIDArray.push(res[i]);
+    }
+    //console.log(employeeIDArray);
+  });
+}
 //=====================================
 
 //=====================Question List===========================
@@ -102,6 +134,7 @@ const startQ = [
   },
 ];
 
+//add employee question
 const empQ = [
   {
     name: "first_name",
@@ -142,6 +175,23 @@ const empQ = [
     type: "list",
     message: "Please select the manager for this new employee",
     choices: managerArray,
+  },
+];
+
+//update employee role question
+const empRoleQ = [
+  {
+    type: "list",
+    name: "employee",
+    message: "which employee do you want to update their role",
+    choices: employeeArray,
+  },
+
+  {
+    type: "list",
+    name: "role",
+    message: "Which role do you want to update to the employee?",
+    choices: roleArray,
   },
 ];
 
@@ -190,7 +240,7 @@ function queryResult(query) {
   });
 }
 
-//function to display all employee
+//function to view all employee
 function viewEmployee() {
   const empQuery = `SELECT employee.id, employee.first_name, employee.last_name, role.title, department.name "department", role.salary ,CONCAT( manager.first_name, " ", manager.last_name) AS "manager"
   FROM employee
@@ -250,8 +300,43 @@ function addEmployee() {
 }
 
 //function to update employee role
+function addEmployeeRole() {
+  inquirer.prompt(empRoleQ).then(function (answer) {
+    function roleIDLoop() {
+      for (let i = 0; i < roleIDArray.length; i++) {
+        if (roleIDArray[i].title === answer.role) {
+          return roleIDArray[i].id;
+        }
+      }
+    }
 
-//function to display all roles
+    //console.log(roleIDLoop());
+
+    function empIDloop() {
+      for (let i = 0; i < employeeIDArray.length; i++) {
+        if (employeeIDArray[i].employee_name === answer.employee) {
+          return employeeIDArray[i].employee_id;
+        }
+      }
+    }
+
+    //console.log(empIDloop());
+
+    let newRoleID = roleIDLoop();
+    let empID = empIDloop();
+
+    // console.log("updated role for employee");
+
+    const empRoleQuery = "UPDATE employee SET role_id = ? WHERE id = ?";
+
+    db.query(empRoleQuery, [newRoleID, empID], function (err, res) {
+      if (err) throw err;
+    });
+    start();
+  });
+}
+
+//function to view all roles
 function viewRoles() {
   const roleQuery = `SELECT * FROM role`;
   queryResult(roleQuery);
@@ -281,4 +366,6 @@ db.connect(function (err) {
   buildRoleIDArray();
   buildManagerArray();
   buildManagerIDArray();
+  buildEmployeeArray();
+  buildEmployeeIDArray();
 });
