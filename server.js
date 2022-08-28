@@ -122,7 +122,7 @@ function buildDepartmentArray() {
     for (let i = 0; i < res.length; i++) {
       departmentArray.push(res[i].name);
     }
-    console.log(departmentArray);
+    //console.log(departmentArray);
   });
 }
 
@@ -133,7 +133,7 @@ function buildDepartmentIDArray() {
     for (let i = 0; i < res.length; i++) {
       departmentIDArray.push(res[i]);
     }
-    console.log(departmentIDArray);
+    // console.log(departmentIDArray);
   });
 }
 
@@ -240,6 +240,15 @@ const addRoleQ = [
   },
 ];
 
+//add department question
+const addDeptQ = [
+  {
+    name: "newDept",
+    type: "input",
+    message: "Please enter the name of new department",
+  },
+];
+
 //=============================================================
 
 //start app
@@ -250,6 +259,15 @@ function start() {
   // asciiArt.font("Manager", "doom", (err, rendered) => {
   //   console.log(err || rendered);
   // });
+
+  buildRoleArray();
+  buildRoleIDArray();
+  buildManagerArray();
+  buildManagerIDArray();
+  buildEmployeeArray();
+  buildEmployeeIDArray();
+  buildDepartmentArray();
+  buildDepartmentIDArray();
 
   inquirer.prompt(startQ).then(function (answer) {
     const nextStep = answer.startQuery;
@@ -421,6 +439,19 @@ function viewDepartment() {
 }
 
 //function to add department
+function addDepartment() {
+  inquirer.prompt(addDeptQ).then(function (answer) {
+    let newDeptName = answer.newDept;
+
+    let addnewDept = new Department(newDeptName);
+
+    db.query("insert into department set ?", addnewDept, function (err, res) {
+      if (err) throw err;
+    });
+
+    start();
+  });
+}
 
 //function to quit
 function stopApp() {
@@ -432,12 +463,4 @@ function stopApp() {
 db.connect(function (err) {
   if (err) throw err;
   start();
-  buildRoleArray();
-  buildRoleIDArray();
-  buildManagerArray();
-  buildManagerIDArray();
-  buildEmployeeArray();
-  buildEmployeeIDArray();
-  buildDepartmentArray();
-  buildDepartmentIDArray();
 });
