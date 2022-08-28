@@ -23,6 +23,8 @@ var managerArray = [];
 var managerIDArray = [];
 var employeeArray = [];
 var employeeIDArray = [];
+var departmentArray = [];
+var departmentIDArray = [];
 //=====================================
 
 //========Build Array==================
@@ -112,6 +114,29 @@ function buildEmployeeIDArray() {
     //console.log(employeeIDArray);
   });
 }
+
+function buildDepartmentArray() {
+  const query = `select * from department`;
+  db.query(query, function (err, res) {
+    if (err) throw err;
+    for (let i = 0; i < res.length; i++) {
+      departmentArray.push(res[i].name);
+    }
+    console.log(departmentArray);
+  });
+}
+
+function buildDepartmentIDArray() {
+  const query = `select * from department`;
+  db.query(query, function (err, res) {
+    if (err) throw err;
+    for (let i = 0; i < res.length; i++) {
+      departmentIDArray.push(res[i]);
+    }
+    console.log(departmentIDArray);
+  });
+}
+
 //=====================================
 
 //=====================Question List===========================
@@ -195,6 +220,26 @@ const empRoleQ = [
   },
 ];
 
+//add role question
+const addRoleQ = [
+  {
+    name: "departmentName",
+    type: "list",
+    message: "Please select department for the new role",
+    choices: departmentArray,
+  },
+  {
+    name: "newRole",
+    type: "input",
+    message: "Please enter the title of the new role.",
+  },
+  {
+    name: "newSalary",
+    type: "number",
+    message: "Please enter the salary of the new role.",
+  },
+];
+
 //=============================================================
 
 //start app
@@ -268,7 +313,7 @@ function addEmployee() {
     //console.log(roleLoop());
 
     function ManagerLoop() {
-      for (let j = 0; j < managerIDArray.length; j++) {
+      for (let j = 0; j < departmentIDArray.length; j++) {
         if (managerIDArray[j].manager_name === answer.manager) {
           return managerIDArray[j].manager_id;
         }
@@ -295,8 +340,6 @@ function addEmployee() {
 
     start();
   });
-
-  //start();
 }
 
 //function to update employee role
@@ -343,6 +386,33 @@ function viewRoles() {
 }
 
 //function to add roles
+function addRoles() {
+  inquirer.prompt(addRoleQ).then(function (answer) {
+    let newRoleName = answer.newRole;
+    //console.log(newRoleName);
+    let newRoleSalary = answer.newSalary;
+    //console.log(newRoleSalary);
+
+    function roleIDLoop() {
+      for (let j = 0; j < departmentIDArray.length; j++) {
+        if (departmentIDArray[j].name === answer.departmentName) {
+          return departmentIDArray[j].id;
+        }
+      }
+    }
+
+    let newRoleID = roleIDLoop();
+    //console.log(newRoleID);
+
+    let addNewRole = new Role(newRoleName, newRoleSalary, newRoleID);
+
+    db.query("insert into role set ?", addNewRole, function (err, res) {
+      if (err) throw err;
+    });
+
+    start();
+  });
+}
 
 //function to view all department
 function viewDepartment() {
@@ -368,4 +438,6 @@ db.connect(function (err) {
   buildManagerIDArray();
   buildEmployeeArray();
   buildEmployeeIDArray();
+  buildDepartmentArray();
+  buildDepartmentIDArray();
 });
