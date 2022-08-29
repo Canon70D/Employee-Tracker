@@ -152,6 +152,7 @@ const startQ = [
       "View All Departments",
       "Add Department",
       "Remove Department",
+      "View budget of a department",
       "Quit",
     ],
   },
@@ -294,6 +295,16 @@ const addDeptQ = [
   },
 ];
 
+//budget question
+const budgetQ = [
+  {
+    name: "budget",
+    type: "list",
+    message: "Please chose department to view the total utilized budget",
+    choices: departmentArray,
+  },
+];
+
 //remove department question
 const removeDQ = [
   {
@@ -345,6 +356,8 @@ function start() {
       addDepartment();
     } else if (nextStep === "Remove Department") {
       removeDept();
+    } else if (nextStep === "View budget of a department") {
+      budget();
     } else if (nextStep === "Quit") {
       stopApp();
     }
@@ -556,7 +569,7 @@ function deleteEmployee() {
 
 //function to view all roles
 function viewRoles() {
-  const roleQuery = `SELECT * FROM role`;
+  const roleQuery = `SELECT role.id, role.title, department.name AS department, role.salary FROM role JOIN department ON role.department_id = department.id ORDER BY role.id ASC`;
   queryResult(roleQuery);
 }
 
@@ -641,6 +654,28 @@ function removeDept() {
     );
 
     start();
+  });
+}
+
+//function to view budget of a department
+function budget() {
+  inquirer.prompt(budgetQ).then(function (answer) {
+    const budgetQuery = `SELECT d.name AS Department_Name, SUM(r.salary) AS Total_Budget
+    FROM employee e
+    LEFT JOIN role r
+    ON e.role_id = r.id
+    LEFT JOIN department d
+    ON d.id = r.department_id
+    GROUP BY d.name
+    HAVING d.name = ?`;
+
+    db.query(budgetQuery, [answer.budget], function (err, res) {
+      if (err) throw err;
+
+      console.table(res);
+
+      start();
+    });
   });
 }
 
