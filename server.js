@@ -557,7 +557,7 @@ function addEmployeeManager() {
     }
 
     //console.log(managerIDArray);
-    console.log(managerIDLoop());
+    //console.log(managerIDLoop());
 
     function empIDloop() {
       for (let i = 0; i < employeeIDArray.length; i++) {
