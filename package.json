@@ -22,7 +22,6 @@
   },
   "homepage": "https://github.com/Canon70D/Employee-Tracker#readme",
   "dependencies": {
-    "ascii-art": "^2.8.5",
     "console.table": "^0.10.0",
     "dotenv": "^8.2.0",
     "inquirer": "^8.2.4",

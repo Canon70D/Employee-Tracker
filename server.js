@@ -1,6 +1,5 @@
 const inquirer = require("inquirer");
 const cTable = require("console.table");
-const asciiArt = require("ascii-art");
 
 const db = require("./config/connection");
 
@@ -8,13 +7,6 @@ const Employee = require("./lib/Employee");
 const Role = require("./lib/Role");
 const Department = require("./lib/Department");
 const { end } = require("./config/connection");
-
-// asciiArt.font("Employee", "doom", (err, rendered) => {
-//   console.log(err || rendered);
-// });
-// asciiArt.font("Manager", "doom", (err, rendered) => {
-//   console.log(err || rendered);
-// });
 
 //========Array List===================
 var roleArray = [];
@@ -148,10 +140,15 @@ const startQ = [
     name: "startQuery",
     choices: [
       "View All Employee",
+      "View All Employee by Manager",
+      "View All Employee by Department",
       "Add Employee",
+      "Delete Employee",
       "Update Employee Role",
+      "Update Employee Manager",
       "View All Roles",
       "Add Roles",
+      "Remove Roles",
       "View All Departments",
       "Add Department",
       "Quit",
@@ -203,6 +200,26 @@ const empQ = [
   },
 ];
 
+//delete employee question
+const deleteEmpQ = [
+  {
+    type: "list",
+    name: "employee",
+    message: "Which employee do you want to Delete?",
+    choices: employeeArray,
+  },
+];
+
+//view employee by manager question
+const empMQ = [
+  {
+    type: "list",
+    name: "manager",
+    message: "Which manager do you want to view their employee?",
+    choices: managerArray,
+  },
+];
+
 //update employee role question
 const empRoleQ = [
   {
@@ -217,6 +234,23 @@ const empRoleQ = [
     name: "role",
     message: "Which role do you want to update to the employee?",
     choices: roleArray,
+  },
+];
+
+//update employee manager question
+const empManagerQ = [
+  {
+    type: "list",
+    name: "employee",
+    message: "which employee do you want to update their manager",
+    choices: employeeArray,
+  },
+
+  {
+    type: "list",
+    name: "manager",
+    message: "Which manager do you want to update to the employee?",
+    choices: managerArray,
   },
 ];
 
@@ -240,6 +274,16 @@ const addRoleQ = [
   },
 ];
 
+//remove role question
+const removeRQ = [
+  {
+    name: "removeRole",
+    type: "list",
+    message: "Please select the role you want to remove",
+    choices: roleArray,
+  },
+];
+
 //add department question
 const addDeptQ = [
   {
@@ -253,13 +297,6 @@ const addDeptQ = [
 
 //start app
 function start() {
-  // asciiArt.font("Employee", "doom", (err, rendered) => {
-  //   console.log(err || rendered);
-  // });
-  // asciiArt.font("Manager", "doom", (err, rendered) => {
-  //   console.log(err || rendered);
-  // });
-
   buildRoleArray();
   buildRoleIDArray();
   buildManagerArray();
@@ -273,14 +310,24 @@ function start() {
     const nextStep = answer.startQuery;
     if (nextStep === "View All Employee") {
       viewEmployee();
+    } else if (nextStep === "View All Employee by Manager") {
+      viewEmployeeByManager();
+    } else if (nextStep === "View All Employee by Department") {
+      viewEmployeeByDept();
     } else if (nextStep === "Add Employee") {
       addEmployee();
+    } else if (nextStep === "Delete Employee") {
+      deleteEmployee();
     } else if (nextStep === "Update Employee Role") {
       addEmployeeRole();
+    } else if (nextStep === "Update Employee Manager") {
+      addEmployeeManager();
     } else if (nextStep === "View All Roles") {
       viewRoles();
     } else if (nextStep === "Add Roles") {
       addRoles();
+    } else if (nextStep === "Remove Roles") {
+      removeRole();
     } else if (nextStep === "View All Departments") {
       viewDepartment();
     } else if (nextStep === "Add Department") {
@@ -312,6 +359,45 @@ function viewEmployee() {
   left join employee as manager on manager.id = employee.manager_id`;
 
   queryResult(empQuery);
+}
+
+//function to view employee by manager
+function viewEmployeeByManager() {
+  inquirer.prompt(empMQ).then(function (answer) {
+    function empManagerIDLoop() {
+      for (let i = 0; i < managerIDArray.length; i++) {
+        if (managerIDArray[i].manager_name === answer.manager) {
+          return managerIDArray[i].manager_id;
+        }
+      }
+    }
+
+    //console.log(empManagerIDLoop());
+
+    let managerID = empManagerIDLoop();
+
+    const empManagerView =
+      "select first_name, last_name from employee where manager_id = ?";
+
+    db.query(empManagerView, managerID, function (err, res) {
+      if (err) throw err;
+      console.table(res);
+      start();
+    });
+  });
+}
+
+//function to view employee by department
+//can do same as view employee by manager...
+function viewEmployeeByDept() {
+  const DeptViewQuery = `SELECT employee.first_name, 
+  employee.last_name, 
+  department.name AS department
+  FROM employee 
+  LEFT JOIN role ON employee.role_id = role.id 
+  LEFT JOIN department ON role.department_id = department.id`;
+
+  queryResult(DeptViewQuery);
 }
 
 //function to add employee
@@ -397,6 +483,64 @@ function addEmployeeRole() {
   });
 }
 
+//function to update employee manager
+function addEmployeeManager() {
+  inquirer.prompt(empManagerQ).then(function (answer) {
+    function managerIDLoop() {
+      for (let i = 0; i < managerIDArray.length; i++) {
+        if (managerIDArray[i].title === answer.manager) {
+          return managerIDArray[i].manager_id;
+        }
+      }
+    }
+
+    //console.log(managerIDLoop);
+
+    function empIDloop() {
+      for (let i = 0; i < employeeIDArray.length; i++) {
+        if (employeeIDArray[i].employee_name === answer.employee) {
+          return employeeIDArray[i].employee_id;
+        }
+      }
+    }
+
+    //console.log(empIDloop());
+
+    let newManagerID = managerIDLoop();
+    let empID = empIDloop();
+
+    // console.log("updated manager for employee");
+
+    const empManagerQuery = "UPDATE employee SET manager_id = ? WHERE id = ?";
+
+    db.query(empManagerQuery, [newManagerID, empID], function (err, res) {
+      if (err) throw err;
+    });
+    start();
+  });
+}
+
+//function to delete employee
+function deleteEmployee() {
+  inquirer.prompt(deleteEmpQ).then(function (answer) {
+    function empIDloop() {
+      for (let i = 0; i < employeeIDArray.length; i++) {
+        if (employeeIDArray[i].employee_name === answer.employee) {
+          return employeeIDArray[i].employee_id;
+        }
+      }
+    }
+
+    let delID = empIDloop();
+
+    db.query("delete from employee where id =  ?", delID, function (err, res) {
+      if (err) throw err;
+
+      start();
+    });
+  });
+}
+
 //function to view all roles
 function viewRoles() {
   const roleQuery = `SELECT * FROM role`;
@@ -432,6 +576,23 @@ function addRoles() {
   });
 }
 
+//function to remove role
+function removeRole() {
+  inquirer.prompt(removeRQ).then(function (answer) {
+    db.query(
+      "delete from role where title =?",
+      [answer.removeRole],
+      function (err, res) {
+        if (err) throw err;
+
+        console.log(`${answer.removeRole} was removed`);
+      }
+    );
+
+    start();
+  });
+}
+
 //function to view all department
 function viewDepartment() {
   const departmentQuery = `SELECT * FROM department`;
@@ -462,5 +623,9 @@ function stopApp() {
 //----------------------------------------------------------
 db.connect(function (err) {
   if (err) throw err;
+
+  console.log("=================");
+  console.log("application start");
+  console.log("=================");
   start();
 });
