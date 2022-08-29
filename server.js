@@ -402,7 +402,7 @@ function viewEmployeeByManager() {
       }
     }
 
-    //console.log(empManagerIDLoop());
+    console.log(empManagerIDLoop());
 
     let managerID = empManagerIDLoop();
 
@@ -550,13 +550,14 @@ function addEmployeeManager() {
   inquirer.prompt(empManagerQ).then(function (answer) {
     function managerIDLoop() {
       for (let i = 0; i < managerIDArray.length; i++) {
-        if (managerIDArray[i].title === answer.manager) {
+        if (managerIDArray[i].manager_name === answer.manager) {
           return managerIDArray[i].manager_id;
         }
       }
     }
 
-    //console.log(managerIDLoop);
+    //console.log(managerIDArray);
+    console.log(managerIDLoop());
 
     function empIDloop() {
       for (let i = 0; i < employeeIDArray.length; i++) {
