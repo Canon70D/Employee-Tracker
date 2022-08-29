@@ -151,6 +151,7 @@ const startQ = [
       "Remove Roles",
       "View All Departments",
       "Add Department",
+      "Remove Department",
       "Quit",
     ],
   },
@@ -293,6 +294,16 @@ const addDeptQ = [
   },
 ];
 
+//remove department question
+const removeDQ = [
+  {
+    name: "removeDept",
+    type: "list",
+    message: "Please enter the department you want to remove",
+    choices: departmentArray,
+  },
+];
+
 //=============================================================
 
 //start app
@@ -332,6 +343,8 @@ function start() {
       viewDepartment();
     } else if (nextStep === "Add Department") {
       addDepartment();
+    } else if (nextStep === "Remove Department") {
+      removeDept();
     } else if (nextStep === "Quit") {
       stopApp();
     }
@@ -609,6 +622,23 @@ function addDepartment() {
     db.query("insert into department set ?", addnewDept, function (err, res) {
       if (err) throw err;
     });
+
+    start();
+  });
+}
+
+//function to remove department
+function removeDept() {
+  inquirer.prompt(removeDQ).then(function (answer) {
+    db.query(
+      "delete from department where name = ?",
+      [answer.removeDept],
+      function (err, res) {
+        if (err) throw err;
+
+        console.log(`${answer.removeDept} was removed`);
+      }
+    );
 
     start();
   });
